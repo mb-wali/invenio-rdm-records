@@ -3,6 +3,7 @@
 # Copyright (C) 2019-2021 CERN.
 # Copyright (C) 2019-2021 Northwestern University.
 # Copyright (C)      2021 TU Wien.
+# Copyright (C)      2021 Graz University of Technology.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -18,7 +19,8 @@ history = open('CHANGES.rst').read()
 
 tests_require = [
     'pytest-invenio>=1.4.1,<2.0.0',
-    'invenio-app>=1.3.0,<2.0.0'
+    'invenio-app>=1.3.0,<2.0.0',
+    'invenio-oauth2server>=1.3.2',
 ]
 
 # Should follow inveniosoftware/invenio versions

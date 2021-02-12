@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2020 CERN.
 # Copyright (C) 2020 Northwestern University.
+# Copyright (C) 2021 Graz University of Technology.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -35,11 +36,12 @@ def _assert_single_item_response(response):
         assert field in response_fields
 
 
-def test_simple_flow(app, client, location, minimal_record, headers):
+def test_simple_flow(app, client, location, minimal_record, headers,
+                     auth_headers):
     """Test a simple REST API flow."""
     # Create a draft
     created_draft = client.post(
-        '/records', headers=headers, data=json.dumps(minimal_record))
+        '/records', headers=auth_headers, data=json.dumps(minimal_record))
     assert created_draft.status_code == 201
     _assert_single_item_response(created_draft)
     id_ = created_draft.json["id"]
@@ -82,23 +84,24 @@ def test_simple_flow(app, client, location, minimal_record, headers):
     assert data['metadata']['title'] == 'New title'
 
 
-def test_create_draft(client, location, minimal_record, headers):
+def test_create_draft(client, location, minimal_record, auth_headers):
     """Test draft creation of a non-existing record."""
     response = client.post(
-        "/records", data=json.dumps(minimal_record), headers=headers)
+        "/records", data=json.dumps(minimal_record), headers=auth_headers)
 
     assert response.status_code == 201
     _assert_single_item_response(response)
 
 
-def test_create_partial_draft(client, location, minimal_record, headers):
+def test_create_partial_draft(client, location, minimal_record, auth_headers):
     """Test partial draft creation of a non-existing record.
 
     NOTE: This tests functionality implemented in records/drafts-resources, but
           intentions specific to this module.
     """
     minimal_record['metadata']["title"] = ""
-    response = client.post("/records", json=minimal_record, headers=headers)
+    response = client.post("/records",
+                           json=minimal_record, headers=auth_headers)
 
     assert 201 == response.status_code
     _assert_single_item_response(response)
@@ -111,10 +114,10 @@ def test_create_partial_draft(client, location, minimal_record, headers):
     assert errors == response.json["errors"]
 
 
-def test_read_draft(client, location, minimal_record, headers):
+def test_read_draft(client, location, minimal_record, headers, auth_headers):
     """Test draft read."""
     response = client.post(
-        "/records", data=json.dumps(minimal_record), headers=headers)
+        "/records", data=json.dumps(minimal_record), headers=auth_headers)
 
     assert response.status_code == 201
 
@@ -127,10 +130,10 @@ def test_read_draft(client, location, minimal_record, headers):
     _assert_single_item_response(response)
 
 
-def test_update_draft(client, location, minimal_record, headers):
+def test_update_draft(client, location, minimal_record, headers, auth_headers):
     """Test draft update."""
     response = client.post(
-        "/records", data=json.dumps(minimal_record), headers=headers)
+        "/records", data=json.dumps(minimal_record), headers=auth_headers)
 
     assert response.status_code == 201
     assert response.json['metadata']["title"] == \
@@ -164,13 +167,15 @@ def test_update_draft(client, location, minimal_record, headers):
     assert update_response.json["id"] == recid
 
 
-def test_update_partial_draft(client, location, minimal_record, headers):
+def test_update_partial_draft(client, location, minimal_record, headers,
+                              auth_headers):
     """Test partial draft update.
 
     NOTE: This tests functionality implemented in records/drafts-resources, but
           intentions specific to this module.
     """
-    response = client.post("/records", json=minimal_record, headers=headers)
+    response = client.post("/records", json=minimal_record,
+                           headers=auth_headers)
     assert 201 == response.status_code
     recid = response.json['id']
     minimal_record['metadata']["title"] = ""
@@ -198,10 +203,10 @@ def test_update_partial_draft(client, location, minimal_record, headers):
     assert "title" not in response.json["metadata"]
 
 
-def test_delete_draft(client, location, minimal_record, headers):
+def test_delete_draft(client, location, minimal_record, headers, auth_headers):
     """Test draft deletion."""
     response = client.post(
-        "/records", data=json.dumps(minimal_record), headers=headers)
+        "/records", data=json.dumps(minimal_record), headers=auth_headers)
 
     assert response.status_code == 201
 
@@ -237,12 +242,14 @@ def _create_and_publish(client, minimal_record, headers):
     return recid
 
 
-def test_publish_draft(client, location, minimal_record, headers):
+def test_publish_draft(client, location, minimal_record, headers,
+                       auth_headers):
     """Test publication of a new draft.
 
     It has to first create said draft.
     """
-    recid = _create_and_publish(client, minimal_record, headers)
+    # NOTE: func requires authenticated user
+    recid = _create_and_publish(client, minimal_record, auth_headers)
 
     response = client.get(f"/records/{recid}/draft", headers=headers)
     assert response.status_code == 404

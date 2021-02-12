@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2019 CERN.
 # Copyright (C) 2019 Northwestern University.
+# Copyright (C) 2021 Graz University of Technology.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -10,7 +11,8 @@
 
 from invenio_drafts_resources.services.records.permissions import \
     RecordDraftPermissionPolicy
-from invenio_records_permissions.generators import AnyUser
+from invenio_records_permissions.generators import AnyUser, \
+    AuthenticatedUser, Disable
 
 
 class RDMRecordPermissionPolicy(RecordDraftPermissionPolicy):
@@ -26,8 +28,22 @@ class RDMRecordPermissionPolicy(RecordDraftPermissionPolicy):
     - Delete access given to admins only. (inherited)
     """
 
-    # TODO: Change all below when permissions settled
-    can_create = [AnyUser()]
-    can_update_files = [AnyUser()]
+    # State Publish
+    can_search = [AnyUser()]
+    can_create = [AuthenticatedUser()]
+    can_update = [Disable()]
+    can_delete = [Disable()]
     can_publish = [AnyUser()]
     can_read = [AnyUser()]
+    can_read_update_files = [AnyUser()]
+    can_manage = [AnyUser()]
+    can_update_files = [AnyUser()]
+
+    # State Draft
+    can_update_draft = [AnyUser()]
+    can_delete_draft = [AnyUser()]
+    can_read_draft = [AnyUser()]
+    can_read_draft_files = [AnyUser()]
+
+    # ?
+    can_read_files = [AnyUser()]

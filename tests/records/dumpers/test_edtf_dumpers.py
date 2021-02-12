@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2020 CERN.
+# Copyright (C) 2021 Graz University of Technology.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -162,7 +163,8 @@ def test_eslistdumper_with_edtfext_parse_error(app, db, minimal_record):
     assert 'type' in new_record['metadata']['resource_type']
 
 
-def test_edtf_dumper_query(app, db, location, minimal_record, identity_simple):
+def test_edtf_dumper_query(app, db, location, minimal_record,
+                           identity_authenticated, identity_simple):
     """Test edft extension queries."""
     date = "2021-01-01"
     minimal_record["metadata"]["publication_date"] = date
@@ -172,7 +174,7 @@ def test_edtf_dumper_query(app, db, location, minimal_record, identity_simple):
     service = RDMRecordService(
         config=app.config.get(RDMRecordService.config_name),
     )
-    record = service.create(identity_simple, minimal_record)
+    record = service.create(identity_authenticated, minimal_record)
     RDMDraft.index.refresh()
 
     # Search for it

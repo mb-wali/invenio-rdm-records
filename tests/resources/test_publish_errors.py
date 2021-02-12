@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2020 CERN.
 # Copyright (C) 2020 Northwestern University.
+# Copyright (C) 2021 Graz University of Technology.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -23,9 +24,9 @@ def save_partial_draft(client, partial_record, headers):
 
 
 def test_simple_field_error(
-        client, minimal_record, location, es_clear, headers):
+        client, minimal_record, location, es_clear, headers, auth_headers):
     minimal_record["metadata"]["publication_date"] = ""
-    response = save_partial_draft(client, minimal_record, headers)
+    response = save_partial_draft(client, minimal_record, auth_headers)
     recid = response.json['id']
 
     response = client.post(
@@ -44,7 +45,7 @@ def test_simple_field_error(
 
 
 def test_nested_field_error(
-        client, minimal_record, location, es_clear, headers):
+        client, minimal_record, location, es_clear, headers, auth_headers):
     minimal_record["metadata"]["creators"] = [
         {
             "person_or_org": {
@@ -61,7 +62,7 @@ def test_nested_field_error(
             }
         }
     ]
-    response = save_partial_draft(client, minimal_record, headers)
+    response = save_partial_draft(client, minimal_record, auth_headers)
     recid = response.json['id']
 
     response = client.post(
@@ -79,14 +80,15 @@ def test_nested_field_error(
     assert expected == response.json["errors"]
 
 
-def test_multiple_errors(client, minimal_record, location, es_clear, headers):
+def test_multiple_errors(client, minimal_record, location, es_clear,
+                         headers, auth_headers):
     minimal_record["metadata"]["publication_date"] = ""
     minimal_record["metadata"]["additional_titles"] = [{
         "title": "A Romans story",
         "type": "invalid",
         "lang": "eng"
     }]
-    response = save_partial_draft(client, minimal_record, headers)
+    response = save_partial_draft(client, minimal_record, auth_headers)
     recid = response.json['id']
 
     response = client.post(
