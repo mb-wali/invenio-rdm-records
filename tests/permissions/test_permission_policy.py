@@ -8,7 +8,6 @@
 
 """Permissions for Invenio RDM Records."""
 
-from elasticsearch_dsl import Q
 from invenio_access.permissions import any_user, authenticated_user
 from invenio_drafts_resources.services.records.permissions import \
     RecordDraftPermissionPolicy
@@ -24,14 +23,14 @@ class TestRDMPermissionPolicy(RecordDraftPermissionPolicy):
     can_delete = [Disable()]
 
 
-def test_permission_policy_generators(app):
-    """Test permission policies with given generators."""
+def test_permission_policy_generators(app, anyuser_identity,
+                                      authenticated_identity,
+                                      superuser_identity):
+    """Test permission policies with given Identities."""
     policy = TestRDMPermissionPolicy
 
-    assert isinstance(policy(action='search').generators[0], AnyUser)
-    assert isinstance(policy(action='create').generators[0], AuthenticatedUser)
-    assert isinstance(policy(action='update').generators[0], Disable)
-    assert isinstance(policy(action='delete').generators[0], Disable)
+    assert policy(action='search').allows(anyuser_identity)
+    assert policy(action='create').allows(authenticated_identity)
 
 
 def test_permission_policy_needs_excludes(superuser_role_need):

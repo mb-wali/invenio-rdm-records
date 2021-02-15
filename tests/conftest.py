@@ -17,6 +17,7 @@ fixtures are available.
 import pytest
 from flask_principal import Identity, Need, UserNeed
 from flask_security.utils import encrypt_password
+from invenio_access.permissions import authenticated_user
 from invenio_app.factory import create_app as _create_app
 from invenio_oauth2server.models import Token
 from werkzeug.local import LocalProxy
@@ -310,10 +311,9 @@ def identity_simple():
 @pytest.fixture(scope="module")
 def identity_authenticated():
     """Simple identity fixture."""
-    i = Identity(1)
-    i.provides.add(UserNeed(1))
-    i.provides.add(Need(method='system_role', value='authenticated_user'))
-    return i
+    identity = Identity(1)
+    identity.provides.add(authenticated_user)
+    return identity
 
 
 @pytest.fixture()

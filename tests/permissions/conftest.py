@@ -12,8 +12,10 @@ fixtures are available.
 """
 
 import pytest
+from flask_principal import Identity
 from invenio_access.models import ActionRoles
-from invenio_access.permissions import superuser_access
+from invenio_access.permissions import any_user, authenticated_user, \
+    superuser_access
 from invenio_accounts.models import Role
 from invenio_app.factory import create_app as _create_app
 
@@ -31,6 +33,8 @@ def celery_config():
 def create_app():
     """Application factory fixture."""
     return _create_app
+
+# Needs
 
 
 @pytest.fixture(scope="function")
@@ -51,3 +55,29 @@ def superuser_role_need(db):
     db.session.commit()
 
     return action_role.need
+
+# Identities
+
+
+@pytest.fixture(scope="function")
+def anyuser_identity():
+    """System identity."""
+    identity = Identity(1)
+    identity.provides.add(any_user)
+    return identity
+
+
+@pytest.fixture(scope="function")
+def authenticated_identity():
+    """Authenticated identity fixture."""
+    identity = Identity(1)
+    identity.provides.add(authenticated_user)
+    return identity
+
+
+@pytest.fixture(scope="function")
+def superuser_identity():
+    """Superuser identity fixture."""
+    identity = Identity(1)
+    identity.provides.add(superuser_access)
+    return identity
