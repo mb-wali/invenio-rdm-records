@@ -11,8 +11,10 @@
 from invenio_access.permissions import any_user, authenticated_user
 from invenio_drafts_resources.services.records.permissions import \
     RecordDraftPermissionPolicy
+
+# TODO: import some existing generators from invenio-rdm-records
 from invenio_records_permissions.generators import AnyUser, \
-    AuthenticatedUser, Disable
+    AuthenticatedUser, Disable, IfRestricted
 
 
 class TestRDMPermissionPolicy(RecordDraftPermissionPolicy):
@@ -21,16 +23,25 @@ class TestRDMPermissionPolicy(RecordDraftPermissionPolicy):
     can_create = [AuthenticatedUser()]
     can_update = [Disable()]
     can_delete = [Disable()]
+    can_read = [IfRestricted('files',
+                             then_=[AuthenticatedUser()], else_=[AnyUser()])]
 
 
 def test_permission_policy_generators(app, anyuser_identity,
                                       authenticated_identity,
-                                      superuser_identity):
+                                      superuser_identity, minimal_record):
     """Test permission policies with given Identities."""
     policy = TestRDMPermissionPolicy
 
+    # files = "restricted"
+    minimal_record["access"]["files"] = "restricted"
+    # record = "public"
+    minimal_record["access"]["record"] = "public"
+
     assert policy(action='search').allows(anyuser_identity)
     assert policy(action='create').allows(authenticated_identity)
+    assert policy(action='read').generators[0].needs(record=minimal_record
+                                                     ) == [authenticated_user]
 
 
 def test_permission_policy_needs_excludes(superuser_role_need):
