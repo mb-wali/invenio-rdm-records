@@ -20,7 +20,7 @@ from invenio_rdm_records.generators import IfRestricted
 
 
 @pytest.mark.parametrize("field", ['files', 'record'])
-def test_ifrestricted(field, minimal_record):
+def test_ifrestricted(field, minimal_record, mocker):
     # Restricted files, permission level = then_
 
     # files = "restricted"
@@ -36,4 +36,17 @@ def test_ifrestricted(field, minimal_record):
         assert generator.needs(record=minimal_record) == [any_user]
     else:
         assert generator.needs(record=record) == []
-    assert generator.query_filter().to_dict() == {'match_all': {}}
+
+    # # assert generator.query_filter() == []
+    # assert generator.query_filter().to_dict() == {
+    #     'term': {"access.files": "restricted"}
+    # }
+
+    # Authenticated identity
+    query_filter = generator.query_filter(
+        identity=mocker.Mock(
+            provides=[mocker.Mock(method='id', value=1)]
+        )
+    )
+
+    assert query_filter.to_dict() == {'term': {'owned_by': 1}}
