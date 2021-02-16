@@ -52,5 +52,10 @@ class IfRestricted(Generator):
 
     def query_filter(self, **kwargs):
         """Filters for current identity as super user."""
-        # TODO: Implement with new permissions metadata
-        return Q('match_all')
+        then_ = getattr(self.then_[0], 'query_filter')()
+        else_ = getattr(self.else_[0], 'query_filter')()
+        if is_field_restricted == "restricted":
+            return then_
+        else:
+            return else_
+        return []
