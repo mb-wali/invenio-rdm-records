@@ -53,27 +53,38 @@ class IfRestricted(Generator):
     def query_filter(self, identity=None, **kwargs):
         """Filters for current identity as super user."""
         # TODO: Implement with new permissions metadata
-        # print(Q('term', **{"access."+self.field: "restricted"}))
-        # if self.field == "files":
-        #     return Q('term', **{"access."+self.field: "restricted"})
-        # return Q('match_all')
-        
-        # record:public
-        # files:private
-        # authenticated users -
-        
 
+        # anyuser
+        # or 
+        # # authenticated user
 
+        if self.field == "restricted":
+            print('there is a restricted', self.field)
 
+        if identity:
+            print(identity)
 
+        # check for authenticated users. with having an id method in Need()
         id_need = next(
             (need for need in identity.provides if need.method == 'id'),
             None
         )
-        print('her-------------', id_need)
-        if not id_need:
-            return []
 
-        print(getattr(self.else_[0], 'needs')())
+        print('id need = ', id_need)
+
+        # show the records with these conditions
         print(Q('term', **{"access.{}".format(self.field): "restricted"}))
-        return Q('term', **{"access.{}".format(self.field): "restricted"})
+
+        # if not authenticated then return none
+        if not id_need:
+            # filter and dont show restricted files
+            return ~Q("match", **{"access.{}".format(self.field): "restricted"})
+            # return []
+
+
+        # filter and dont show restricted files
+        return ~Q("match", **{"access.{}".format(self.field): "restricted"})
+
+        # shows all - if authenticated
+        print('authenticated here-')
+        return Q('match_all')
