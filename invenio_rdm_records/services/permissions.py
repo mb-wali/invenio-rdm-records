@@ -28,7 +28,7 @@ class RDMRecordPermissionPolicy(RecordDraftPermissionPolicy):
     - Delete access given to admins only. (inherited)
     """
 
-    # State Publish
+    # Publish
     can_search = [AnyUser()]
     can_create = [AuthenticatedUser()]
     can_update = [Disable()]
@@ -39,7 +39,7 @@ class RDMRecordPermissionPolicy(RecordDraftPermissionPolicy):
     can_manage = [AnyUser()]
     can_update_files = [AnyUser()]
 
-    # State Draft
+    # Draft
     can_update_draft = [AnyUser()]
     can_delete_draft = [AnyUser()]
     can_read_draft = [AnyUser()]
