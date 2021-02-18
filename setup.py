@@ -20,7 +20,6 @@ history = open('CHANGES.rst').read()
 tests_require = [
     'pytest-invenio>=1.4.1,<2.0.0',
     'invenio-app>=1.3.0,<2.0.0',
-    'invenio-oauth2server>=1.3.2',
 ]
 
 # Should follow inveniosoftware/invenio versions
