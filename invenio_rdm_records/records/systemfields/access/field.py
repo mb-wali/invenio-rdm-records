@@ -30,6 +30,7 @@ class Access:
         grants=None,
         protection=None,
         embargo=None,
+        errors=None,
         owners_cls=None,
         grants_cls=None,
         protection_cls=None,
@@ -64,6 +65,7 @@ class Access:
             self._protection = protection_cls("public", "public")
 
         self.embargo = embargo
+        self._errors = errors or []
 
     def clear_embargo(self):
         """Remove all information about the embargo."""
@@ -98,6 +100,11 @@ class Access:
         """The embargo information of the record."""
         return self._embargo
 
+    @property
+    def errors(self):
+        """Get the list of accumulated validation errors."""
+        return self._errors
+
     @embargo.setter
     def embargo(self, embargo):
         self._embargo = embargo
@@ -120,6 +127,15 @@ class Access:
 
         return access
 
+    def refresh_from_dict(self, access_dict):
+        """Re-initialize the Access object with the data in the access_dict."""
+        new_access = self.from_dict(access_dict)
+        self._errors = new_access.errors
+        self._owned_by = new_access.owned_by
+        self._grants = new_access.grants
+        self._protection = new_access.protection
+        self.embargo = new_access.embargo
+
     @classmethod
     def from_dict(
         cls,
@@ -137,26 +153,37 @@ class Access:
         with new instances of ``owners_cls``, ``grants_cls``, and
         ``protection_cls``.
         """
-        grants_cls = grants_cls or Access.grant_cls
-        owners_cls = owners_cls or Access.owners_cls
-        protection_cls = protection_cls or Access.protection_cls
-        embargo_cls = embargo_cls or Access.embargo_cls
+        grants_cls = grants_cls or cls.grant_cls
+        owners_cls = owners_cls or cls.owners_cls
+        protection_cls = protection_cls or cls.protection_cls
+        embargo_cls = embargo_cls or cls.embargo_cls
+        errors = []
 
         if access_dict:
             owners = owners_cls()
             grants = grants_cls()
+            protection = None
+            embargo = None
 
             for owner_dict in access_dict.get("owned_by", []):
-                owners.add(owners.owner_cls(owner_dict))
+                try:
+                    owners.add(owners.owner_cls(owner_dict))
+                except Exception as e:
+                    errors.append(e)
 
             for grant_dict in access_dict.get("grants", []):
-                grants.add(grants.grant_cls.from_dict(grant_dict))
+                try:
+                    grants.add(grants.grant_cls.from_dict(grant_dict))
+                except Exception as e:
+                    errors.append(e)
 
-            protection = protection_cls(
-                access_dict["record"], access_dict["files"]
-            )
+            try:
+                protection = protection_cls(
+                    access_dict["record"], access_dict["files"]
+                )
+            except Exception as e:
+                errors.append(e)
 
-            embargo = None
             embargo_dict = access_dict.get("embargo")
             if embargo_dict is not None:
                 embargo = embargo_cls.from_dict(embargo_dict)
@@ -168,12 +195,15 @@ class Access:
             protection = protection_cls()
             embargo = None
 
-        return cls(
+        access = cls(
             owned_by=owners,
             grants=grants,
             protection=protection,
             embargo=embargo,
+            errors=errors,
         )
+
+        return access
 
     def __repr__(self):
         """Return repr(self)."""

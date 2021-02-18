@@ -41,12 +41,29 @@ class Grant:
         will trigger a database query.
         """
         if self._subject is None:
-            if self._subject_type == "user":
-                self._subject = User.query.get(self._subject_id)
-            elif self._subject_type == "role":
-                self._subject = Role.query.get(self._subject_id)
+            self._subject = self.resolve_subject()
 
         return self._subject
+
+    def resolve_subject(self, raise_exc=False):
+        """Force resolving of the grant's subject.
+
+        If the grant subject should be resolvable (i.e. it is not a
+        system role) but cannot be found and ``raise_exc`` is set,
+        a LookupError will be raised.
+        """
+        subject = None
+        if self._subject_type == "user":
+            subject = User.query.get(self._subject_id)
+        elif self._subject_type == "role":
+            subject = Role.query.get(self._subject_id)
+
+        if self._subject_type in ["user", "role"] and subject is None:
+            raise LookupError(
+                "could not find grant subject: {}".format(self.to_dict())
+            )
+
+        return subject
 
     @property
     def subject_type(self):
@@ -199,14 +216,29 @@ class Grant:
         )
 
 
-class Grants(set):
-    """Set of grants for various permission levels on a record."""
+class Grants(list):
+    """List of grants for various permission levels on a record."""
 
     grant_cls = Grant
 
     def __init__(self, grants=None):
-        """Create a new set of Grants."""
-        super().__init__(grants or [])
+        """Create a new list of Grants."""
+        for grant in grants or []:
+            self.add(grant)
+
+    def append(self, grant):
+        """Add the grant to the list of grants."""
+        if grant not in self:
+            super().append(grant)
+
+    def add(self, grant):
+        """Alias for self.append(grant)."""
+        self.append(grant)
+
+    def extend(self, grants):
+        """Add all new items from the specified grants to this list."""
+        for grant in grants:
+            self.add(grant)
 
     def needs(self, permission):
         """Get allowed needs for the given permission level."""
