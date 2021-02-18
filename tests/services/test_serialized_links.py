@@ -2,7 +2,6 @@
 #
 # Copyright (C) 2020 CERN.
 # Copyright (C) 2020 Northwestern University.
-# Copyright (C) 2021 Graz University of Technology.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -19,10 +18,10 @@ HEADERS = {"content-type": "application/json", "accept": "application/json"}
 
 
 @pytest.fixture
-def draft_json(app, client, minimal_record, es, location, auth_headers):
+def draft_json(app, client, minimal_record, es, location):
     """RDM Draft fixture."""
     response = client.post(
-        "/records", json=minimal_record, headers=auth_headers
+        "/records", json=minimal_record, headers=HEADERS
     )
     return response.json
 

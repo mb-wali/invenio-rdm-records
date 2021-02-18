@@ -18,7 +18,7 @@ from flask_principal import Identity
 from invenio_access import any_user
 from invenio_access.models import ActionRoles
 from invenio_access.permissions import any_user, authenticated_user, \
-    superuser_access
+    superuser_access, system_process
 from invenio_accounts.models import Role
 from invenio_app.factory import create_api
 from invenio_vocabularies.records.models import VocabularyType
@@ -113,4 +113,12 @@ def superuser_identity():
     """Superuser identity fixture."""
     identity = Identity(1)
     identity.provides.add(superuser_access)
+    return identity
+
+
+@pytest.fixture(scope="function")
+def system_process_identity():
+    """Superuser identity fixture."""
+    identity = Identity(1)
+    identity.provides.add(system_process)
     return identity

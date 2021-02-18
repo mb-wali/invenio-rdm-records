@@ -3,7 +3,6 @@
 # Copyright (C) 2019 CERN.
 # Copyright (C) 2019 Northwestern University.
 # Copyright (C) 2021 TU Wien.
-# Copyright (C) 2021 Graz University of Technology.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -16,11 +15,7 @@ fixtures are available.
 
 import pytest
 from flask_principal import Identity, Need, UserNeed
-from flask_security.utils import encrypt_password
-from invenio_access.permissions import authenticated_user
 from invenio_app.factory import create_app as _create_app
-from invenio_oauth2server.models import Token
-from werkzeug.local import LocalProxy
 
 from invenio_rdm_records import config
 
@@ -333,45 +328,3 @@ def identity_simple():
     i.provides.add(UserNeed(1))
     i.provides.add(Need(method='system_role', value='any_user'))
     return i
-
-
-@pytest.fixture(scope="module")
-def identity_authenticated():
-    """Simple identity fixture."""
-    identity = Identity(1)
-    identity.provides.add(authenticated_user)
-    return identity
-
-
-@pytest.fixture()
-def access_token(app, db):
-    """Create new token.
-
-    A bearer token is the final token that can be used by the client.
-    """
-    _datastore = LocalProxy(lambda: app.extensions['security'].datastore)
-    kwargs = dict(email='token@inveniosoftware.org', password='123456',
-                  active=True)
-    kwargs['password'] = encrypt_password(kwargs['password'])
-    user = _datastore.create_user(**kwargs)
-
-    db.session.commit()
-    token = Token.create_personal(
-        'test-personal-{0}'.format(user.id),
-        user.id,
-        scopes=['email'],
-        is_internal=True,
-    ).access_token
-    db.session.commit()
-
-    return token
-
-
-@pytest.fixture()
-def auth_headers(access_token):
-    """Token headers for making requests."""
-    return {
-        'content-type': 'application/json',
-        'accept': 'application/json',
-        'Authorization': 'Bearer {}'.format(access_token)
-    }
