@@ -13,7 +13,10 @@ fixtures are available.
 """
 
 import pytest
+from flask_security.utils import encrypt_password
 from invenio_app.factory import create_api
+from invenio_oauth2server.models import Token
+from werkzeug.local import LocalProxy
 
 from invenio_rdm_records import config
 
@@ -249,9 +252,34 @@ def full_record():
 
 
 @pytest.fixture()
-def headers():
+def access_token(app, db):
+    """Create new token.
+
+    A bearer token is the final token that can be used by the client.
+    """
+    _datastore = LocalProxy(lambda: app.extensions['security'].datastore)
+    kwargs = dict(email='token@inveniosoftware.org', password='123456',
+                  active=True)
+    kwargs['password'] = encrypt_password(kwargs['password'])
+    user = _datastore.create_user(**kwargs)
+
+    db.session.commit()
+    token = Token.create_personal(
+        'test-personal-{0}'.format(user.id),
+        user.id,
+        scopes=['email'],
+        is_internal=True,
+    ).access_token
+    db.session.commit()
+
+    return token
+
+
+@pytest.fixture()
+def headers(access_token):
     """Default headers for making requests."""
     return {
         'content-type': 'application/json',
         'accept': 'application/json',
+        'Authorization': 'Bearer {}'.format(access_token)
     }
