@@ -2,6 +2,7 @@
 #
 # Copyright (C) 2019 CERN.
 # Copyright (C) 2019 Northwestern University.
+# Copyright (C) 2021 Graz University of Technology.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -176,3 +177,9 @@ RDM_RECORDS_DOI_DATACITE_USERNAME = ""
 RDM_RECORDS_DOI_DATACITE_PASSWORD = ""
 RDM_RECORDS_DOI_DATACITE_PREFIX = "10.1234"
 RDM_RECORDS_DOI_DATACITE_TEST_MODE = True
+
+RDM_RECORDS_NEW_VERSION_SKIP = [
+    'publication_date',
+    'version'
+]
+"""Remove fields that should not be copied to the new version."""

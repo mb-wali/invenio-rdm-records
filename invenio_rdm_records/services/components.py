@@ -3,6 +3,7 @@
 # Copyright (C) 2020-2021 CERN.
 # Copyright (C) 2020 Northwestern University.
 # Copyright (C) 2021 TU Wien.
+# Copyright (C) 2021 Graz University of Technology.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -12,6 +13,7 @@
 import re
 from copy import copy
 
+from flask import current_app
 from flask_babelex import lazy_gettext as _
 from invenio_access.permissions import system_process
 from invenio_drafts_resources.services.records.components import \
@@ -116,8 +118,6 @@ class AccessComponent(ServiceComponent):
 class MetadataComponent(ServiceComponent):
     """Service component for metadata."""
 
-    new_version_skip_fields = ['publication_date', 'version']
-
     def create(self, identity, data=None, record=None, **kwargs):
         """Inject parsed metadata to the record."""
         record.metadata = data.get('metadata', {})
@@ -137,9 +137,8 @@ class MetadataComponent(ServiceComponent):
     def new_version(self, identity, draft=None, record=None, **kwargs):
         """Update draft metadata."""
         draft.metadata = copy(record.get('metadata', {}))
-        # Remove fields that should not be copied to the new version
-        # (publication date and version)
-        for f in self.new_version_skip_fields:
+        # Load from config to remove fields from the new version
+        for f in current_app.config.get("RDM_RECORDS_NEW_VERSION_SKIP"):
             draft.metadata.pop(f, None)
 
 
