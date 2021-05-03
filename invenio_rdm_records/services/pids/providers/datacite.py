@@ -139,8 +139,9 @@ class DOIDataCitePIDProvider(BasePIDProvider):
             # PIDS-FIXME: move to async task, exception handling included
             try:
                 doc = DataCite43JSONSerializer().dump_one(record)
+                print(doc["metadata"])
                 self.api_client.public_doi(
-                    metadata=doc, url=url, doi=pid.pid_value)
+                    metadata=doc["metadata"], url=url, doi=pid.pid_value)
             except DataCiteError:
                 logging.warning("DataCite provider errored when updating " +
                                 f"DOI for {pid.pid_value}")

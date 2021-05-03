@@ -154,7 +154,7 @@ class DataCite43Schema(Schema):
     contributors = fields.List(
         fields.Nested(ContributorSchema43), attribute='metadata.contributors')
     publisher = fields.Str(attribute='metadata.publisher')
-    publicationYear = fields.Method("get_publication_year")
+    publicationYear = fields.Str(attribute='metadata.publication_date')
     subjects = fields.List(
         fields.Nested(SubjectSchema43), attribute='metadata.subjects')
     dates = fields.Method('get_dates')
@@ -177,8 +177,8 @@ class DataCite43Schema(Schema):
         resource_type = obj["metadata"]["resource_type"]
 
         return {
-            'resourceTypeGeneral': "FIXME",
-            'resourceType': "FIXME",
+           'resourceTypeGeneral': "Other",
+           'resourceType': resource_type["type"],
         }
 
     def get_titles(self, obj):
